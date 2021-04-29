@@ -1,0 +1,102 @@
+---
+- name: CONFIGURE IPV6 ADDRESSING
+  hosts: CSR1kv
+  gather_facts: false
+  connection: local
+
+  tasks:
+   - name: SET IPV6 ADDRESS
+     ios_config: 
+       parents: "interface GigabitEthernet1"
+       lines:
+         - description IPv6 ADDRESS
+         - ipv6 address 2001:db8:acad:1::1/64
+         - ipv6 address fe80::1:1 link-local
+
+   - name: SHOW IPv6 INTERFACE BRIEF
+     ios_command:
+       commands:
+         - show ipv6 interface brief
+     register: output
+   
+   - name: SAVE OUTPUT ./ios_configurations/
+     copy:
+      content: "{{output.stdout[0]}}"
+      dest: "ios_configurations/IPv6_output_{{inventory_hostname}}.txt"
+
+
+
+
+
+- name: Change IP add to DHCP and Show Running Config
+  hosts: R1
+  gather_facts: false
+  connection: local
+  tasks:
+   - name: Change IP address to DHCP
+     ios_config: 
+       parents: "interface gig0/1"
+       lines:
+         - ip address dhcp
+         - no shut
+
+   - name: Show Running Config
+     ios_command:
+       commands:
+         - show ip interface brief
+     register: output
+   
+   - name: SAVE OUTPUT ./ios_configurations/
+     copy:
+      content: "{{output.stdout[0]}}"
+      dest: "ios_configurations/Running_config_{{inventory_hostname}}.txt"
+
+
+
+
+
+
+- name: sHOW VERSion
+  hosts: R2
+  gather_facts: false
+  connection: local
+  tasks:
+   - name: Show Version
+     ios_command: 
+       commands:
+         -  show version
+
+   - name: SHOW VERSION
+     ios_command:
+       commands:
+         -  show version
+     register: output
+   - name: SAVE OUTPUT ./ios_configurations/
+     copy:
+      content: "{{output.stdout[0]}}"
+      dest: "ios_configurations/Show_Version_{{inventory_hostname}}.txt"
+
+
+
+
+
+
+
+- name: Banner Change
+  hosts: R3
+  gather_facts: false
+  connection: local
+  tasks:
+   - name: Change Banner motd
+     ios_config: 
+       lines:
+         - banner motd $ *****This Is A restricted Device***** $
+   - name: Banner Change
+     ios_command:
+       commands:
+         - show banner motd
+     register: output
+   - name: SAVE OUTPUT ./ios_configurations/
+     copy:
+      content: "{{output.stdout[0]}}"
+      dest: "ios_configurations/Banner_Motd_{{inventory_hostname}}.txt"
